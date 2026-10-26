@@ -1,52 +1,71 @@
 package ec.edu.taller;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.PriorityQueue;
 import java.util.Queue;
 
 public class GestorIncidentes {
 
-    private Queue<IncidenteSeguridad> colaIncidentes;
-    private int capacidadMaxima;
+    private final Queue<IncidenteSeguridad> colaIncidentes;
+    private final int capacidadMaxima;
 
     public GestorIncidentes(int capacidadMaxima) {
-
-        this.colaIncidentes = null;
+        this.capacidadMaxima = capacidadMaxima;
+        this.colaIncidentes = new PriorityQueue<>(
+                Comparator.comparingInt(IncidenteSeguridad::getPrioridad));
     }
 
     public boolean registrarIncidente(IncidenteSeguridad incidente) {
-        // TODO: implementar validaciones y registro en cola
-        return false;
+        if (incidente == null
+                || incidente.getCodigo() == null
+                || incidente.getCodigo().trim().isEmpty()
+                || colaIncidentes.size() >= capacidadMaxima
+                || existeIncidente(incidente.getCodigo())) {
+            return false;
+        }
+        return colaIncidentes.offer(incidente);
     }
 
     public boolean existeIncidente(String codigo) {
-        // TODO: verificar si existe un incidente por código
+        if (codigo == null || codigo.trim().isEmpty()) {
+            return false;
+        }
+        for (IncidenteSeguridad incidente : colaIncidentes) {
+            if (codigo.equals(incidente.getCodigo())) {
+                return true;
+            }
+        }
         return false;
     }
 
     public IncidenteSeguridad consultarSiguienteIncidente() {
-        // TODO: consultar sin eliminar
-        return null;
+        return colaIncidentes.peek();
     }
 
     public IncidenteSeguridad atenderSiguienteIncidente() {
-        // TODO: eliminar el primero de la cola y cambiar estado a ATENDIDO
-        return null;
+        IncidenteSeguridad incidente = colaIncidentes.poll();
+        if (incidente != null) {
+            incidente.setEstado("ATENDIDO");
+        }
+        return incidente;
     }
 
     public int contarIncidentesPendientes() {
-        // TODO: retornar cantidad de incidentes pendientes
-        return 0;
+        return colaIncidentes.size();
     }
 
     public int consultarEspaciosDisponibles() {
-        // TODO: retornar capacidad disponible
-        return 0;
+        return capacidadMaxima - colaIncidentes.size();
     }
 
     public List<IncidenteSeguridad> listarIncidentes() {
-        // TODO: retornar copia de los incidentes pendientes sin modificar la cola
-        return new ArrayList<>();
+        Queue<IncidenteSeguridad> copia = new PriorityQueue<>(colaIncidentes);
+        List<IncidenteSeguridad> incidentes = new ArrayList<>(copia.size());
+        while (!copia.isEmpty()) {
+            incidentes.add(copia.poll());
+        }
+        return incidentes;
     }
 }

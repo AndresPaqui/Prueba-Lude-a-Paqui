@@ -57,19 +57,23 @@ original de GitHub Classroom, por ejemplo:
 mvn -Dtest=GestorIncidentesListarTest test
 ```
 
-## Estado del proyecto recibido y verificación
+## Estado del proyecto y verificación
 
-**Las pruebas no pueden compilar contra el código base recibido**: faltan los
-métodos `getCodigo()`, `getPrioridad()` y `getEstado()` de `IncidenteSeguridad`,
-requeridos por el contrato de getters del enunciado. Además, los métodos de
-`GestorIncidentes` son plantillas pendientes de implementación y su cola se
-inicializa en `null`. Una vez completados los accesores, todavía será necesario
-implementar la lógica para que las pruebas pasen. No se modificó ese código.
+La implementación incluye los accesores de `IncidenteSeguridad`, la cola
+ordenada por prioridad, las validaciones y operaciones de `GestorIncidentes`,
+y la interfaz Swing de `ventana2`, diseñada con el archivo `Ventana.form`.
+`InterfazIncidentes` conserva un punto de entrada compatible. El `pom.xml`
+configura Java 17.
 
-Se comprobó la compilación con Java 17 y compatibilidad de fuentes Java 8, como
-configura actualmente el `pom.xml`. Las prioridades de texto de las pruebas
-anteriores se sustituyeron por enteros. La compilación del proyecto recibido
-ahora se detiene por los accesores faltantes, no por el tipo del constructor.
+Se compiló el código de producción con `javac --release 17` y se ejecutaron
+comprobaciones temporales de registro, prioridad, listado, capacidad, estado de
+atención y validaciones, todas aprobadas. No se pudo ejecutar `mvn test` en el
+entorno actual porque Maven no está instalado; por tanto, la batería JUnit de
+este proyecto aún requiere ejecución en un entorno con Maven.
+
+Las prioridades de texto de las pruebas anteriores se sustituyeron por
+enteros. La verificación de referencia descrita arriba valida los casos de
+prueba, no sustituye la ejecución de la batería contra el proyecto.
 
 Para verificar la propia batería, se ejecutaron sus 34 casos con JUnit Platform
 1.10.2 / JUnit Jupiter 5.10.2 sobre una implementación de referencia temporal,
@@ -86,8 +90,7 @@ Console, sin cambiar las dependencias del proyecto.
 
 ## Alcance de los cambios
 
-Solo se modificaron las siete clases existentes dentro de `src/test/java` y
-se añadió este documento en `src/test`. Los archivos de desarrollo, el
-enunciado, `pom.xml` y la configuración de GitHub Classroom se conservaron
-idénticos al ZIP original. La interfaz Swing requiere revisión manual y no se
-incluye en estas pruebas unitarias de lógica.
+La lógica, el modelo y la interfaz Swing diseñada en `Ventana.form` están
+implementados en `src/main/java/ec/edu/taller`; `pom.xml` configura Java 17.
+Las pruebas unitarias de `src/test/java` conservan sus 34 casos y verifican la
+lógica de la cola, pero no cubren la interfaz gráfica.
