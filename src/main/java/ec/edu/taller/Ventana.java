@@ -7,6 +7,8 @@ import java.util.List;
 
 public class Ventana {
     private static final int CAPACIDAD_MAXIMA = 10;
+    private static final int PRIORIDAD_MINIMA = 1;
+    private static final int PRIORIDAD_MAXIMA = 5;
 
     private JPanel Ventana;
     private JTabbedPane tabbedPane1;
@@ -35,8 +37,13 @@ public class Ventana {
 
     public Ventana() {
         gestorIncidentes = new GestorIncidentes(CAPACIDAD_MAXIMA);
+        spnPrioridad.setModel(new SpinnerNumberModel(
+                PRIORIDAD_MINIMA, PRIORIDAD_MINIMA, PRIORIDAD_MAXIMA, 1));
         txtAreaLista.setEditable(false);
+        cargarIncidentesDePrueba();
         actualizarContadores();
+        mostrarIncidente(gestorIncidentes.consultarSiguienteIncidente());
+        actualizarListado();
 
         btnRegistrar.addActionListener(new ActionListener() {
             @Override
@@ -49,12 +56,7 @@ public class Ventana {
             public void actionPerformed(ActionEvent e) {
                 IncidenteSeguridad incidente = gestorIncidentes.consultarSiguienteIncidente();
                 mostrarIncidente(incidente);
-                if (incidente == null) {
-                    JOptionPane.showMessageDialog(Ventana,
-                            "No hay incidentes pendientes.",
-                            "Cola vacía",
-                            JOptionPane.INFORMATION_MESSAGE);
-                }
+                mostrarSiguienteEnArea(incidente);
             }
         });
         btnAtender.addActionListener(new ActionListener() {
@@ -114,11 +116,40 @@ public class Ventana {
             return;
         }
 
-        int prioridad = (Integer) spnPrioridad.getValue();
+        String descripcion = txtDescripcion.getText().trim();
+        if (descripcion.isEmpty()) {
+            JOptionPane.showMessageDialog(Ventana,
+                    "Ingrese la descripción del incidente.",
+                    "Descripción requerida",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int prioridad;
+        try {
+            spnPrioridad.commitEdit();
+            prioridad = (Integer) spnPrioridad.getValue();
+        } catch (java.text.ParseException | IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(Ventana,
+                    "Ingrese una prioridad entera entre "
+                            + PRIORIDAD_MINIMA + " y " + PRIORIDAD_MAXIMA + ".",
+                    "Prioridad inválida",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        if (prioridad < PRIORIDAD_MINIMA || prioridad > PRIORIDAD_MAXIMA) {
+            JOptionPane.showMessageDialog(Ventana,
+                    "La prioridad debe estar entre "
+                            + PRIORIDAD_MINIMA + " y " + PRIORIDAD_MAXIMA + ".",
+                    "Prioridad fuera de rango",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
         IncidenteSeguridad incidente = new IncidenteSeguridad(
                 codigo,
                 tipo,
-                txtDescripcion.getText().trim(),
+                descripcion,
                 prioridad);
 
         if (!gestorIncidentes.registrarIncidente(incidente)) {
@@ -140,6 +171,34 @@ public class Ventana {
                 JOptionPane.INFORMATION_MESSAGE);
     }
 
+    private void cargarIncidentesDePrueba() {
+        IncidenteSeguridad[] incidentesDePrueba = {
+                new IncidenteSeguridad("INC-001", "PHISHING",
+                        "Correo sospechoso recibido por un usuario.", 1),
+                new IncidenteSeguridad("INC-002", "MALWARE",
+                        "Archivo adjunto detectado como malicioso.", 2),
+                new IncidenteSeguridad("INC-003", "ACCESO_NO_AUTORIZADO",
+                        "Intento de acceso desde una ubicación inusual.", 3),
+                new IncidenteSeguridad("INC-004", "FUGA_DATOS",
+                        "Posible envío de información a un destino externo.", 4),
+                new IncidenteSeguridad("INC-005", "OTRO",
+                        "Actividad inusual reportada por el equipo de soporte.", 5),
+                new IncidenteSeguridad("INC-006", "PHISHING",
+                        "Enlace sospechoso reportado en un mensaje.", 2),
+                new IncidenteSeguridad("INC-007", "MALWARE",
+                        "Alerta de software no autorizado en un equipo.", 1),
+                new IncidenteSeguridad("INC-008", "ACCESO_NO_AUTORIZADO",
+                        "Múltiples intentos fallidos de inicio de sesión.", 3)
+        };
+
+        for (IncidenteSeguridad incidente : incidentesDePrueba) {
+            if (!gestorIncidentes.registrarIncidente(incidente)) {
+                throw new IllegalStateException(
+                        "No se pudo cargar el incidente de prueba " + incidente.getCodigo());
+            }
+        }
+    }
+
     private void mostrarIncidente(IncidenteSeguridad incidente) {
         if (incidente == null) {
             lblInfoCodigo.setText("CODIGO: ---");
@@ -155,6 +214,18 @@ public class Ventana {
         lblInfoPrioridad.setText("PRIORIDAD: " + incidente.getPrioridad());
         lblInfoEstado.setText("ESTADO: " + incidente.getEstado());
         lblInfoDescripcion.setText("DESCRIPCION: " + incidente.getDescripcion());
+    }
+
+    private void mostrarSiguienteEnArea(IncidenteSeguridad incidente) {
+        if (incidente == null) {
+            txtAreaLista.setText("No hay incidentes pendientes.");
+            return;
+        }
+
+        txtAreaLista.setText("SIGUIENTE INCIDENTE A ATENDER:\n"
+                + incidente
+                + " | "
+                + incidente.getDescripcion());
     }
 
     private void actualizarContadores() {
